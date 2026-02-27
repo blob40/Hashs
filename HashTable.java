@@ -4,27 +4,40 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.html.HTML.Tag;
 import javax.swing.text.html.HTMLDocument.Iterator;
 
+
 import java.io.*;
 
 public class HashTable {
-    int tableSize = 128;
-    Hashtable<String, Integer> table = new Hashtable<>(tableSize, .75f);
+
+    int capacity = 128;
+    float loadFactor = .75f;
+    private LinkedList <String> [] buckets;
 
     // Where collision setup has to be?
     //Chaining create a linked list withing each index spot
     public void put(String key) {
         int hashCode = key.hashCode();
-        int arrayIndex = Math.abs(hashCode) % tableSize;
+        int arrayIndex = Math.abs(hashCode) % capacity;
      
-        List linkedList = new LinkedList();
-        if (table.get(key) != null){
-            linkedList.add(table.get(key));
-        } else {
-        table.put(key, arrayIndex);
-    }
+       
+        if (buckets[arrayIndex] == null){
+            buckets[arrayIndex] = new LinkedList<String>();
+        } 
+            buckets[arrayIndex].add(key);
+        
+       
 
-        if (tableSize > ((tableSize*2)/3)){
-            tableSize*=2;
+        if (capacity > ((capacity*2)/3)){
+            capacity*=2;
+        
+            int newHashCode = key.hashCode();
+            int newArrayIndex = Math.abs(newHashCode) % capacity;
+
+        if (buckets[newArrayIndex] != null && buckets[newArrayIndex].contains(key)) {
+            // Key already exists in new bucket
+        } else {
+            buckets[newArrayIndex].add(key);
+        }
             //use iterator to reput things in
         }
     }
@@ -32,19 +45,23 @@ public class HashTable {
     // Has to think about collisions here
     public String get(String key) {
         int hashCode = key.hashCode();
-        int arrayIndex = Math.abs(hashCode) % tableSize;
+        int arrayIndex = Math.abs(hashCode) % capacity;
 
-        if (table.get(key) == arrayIndex){
-            return key;
-        } else {
-            
-            //iterate through the linked list to find the key
+        if (buckets[arrayIndex] != null) {
+            return buckets[arrayIndex].get(0); // Return first element in bucket
         }
         return null;
     }
 
-    public String remove(String key) {
-        return key;
+    public Integer remove(String key) {
+        int hashCode = key.hashCode();
+        int arrayIndex = Math.abs(hashCode) % capacity;
+
+        if (buckets[arrayIndex] != null && buckets[arrayIndex].contains(key)) {
+            buckets[arrayIndex].remove(key);
+            return 1; 
+        }
+        return 0; 
     }
 
     public Iterator keys() {
@@ -148,7 +165,7 @@ public class HashTable {
          @Override
         public void next() {
             if (hasNext()){
-
+                return table.keys().nextElement();
             }  else {
                 throw new NoSuchElementException();
             }
